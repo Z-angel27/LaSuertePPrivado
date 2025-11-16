@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>La Suerte - Punto de Venta</title>
+  <style>
+    :root{--accent:#2b6cb0;--muted:#666}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Arial,Helvetica,sans-serif;margin:0;background:#f5f7fb;color:#222}
+    header{background:linear-gradient(90deg,#fff 0,#eef4fb);padding:14px 24px;border-bottom:1px solid #e0e6ef;display:flex;align-items:center;justify-content:space-between}
+    header h1{margin:0;font-size:18px}
+    .header-right{display:flex;align-items:center;gap:20px}
+    .user-info{font-size:12px;color:#666}
+    .user-info strong{color:#222}
+    .rol-badge{display:inline-block;background:var(--accent);color:#fff;padding:4px 8px;border-radius:4px;font-size:11px}
+    .btn-logout{background:#c81e1e;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+    .btn-logout:hover{background:#a01515}
+    nav{display:flex;gap:8px}
+    nav button{background:transparent;border:1px solid transparent;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+    nav button.active{background:var(--accent);color:#fff}
+    nav button:disabled{opacity:0.5;cursor:not-allowed}
+    .container{max-width:1100px;margin:20px auto;padding:16px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
+    .card{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 4px rgba(20,30,55,0.04)}
+    label{display:block;margin:8px 0 6px;font-size:13px;color:var(--muted)}
+    input,select,button,textarea{width:100%;padding:8px;border:1px solid #d6dce9;border-radius:6px;font-size:13px}
+    .btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+    .btn.secondary{background:#edf2f7;color:#111;border:1px solid #e2e8f0}
+    .alert{padding:10px;border-radius:6px;margin-bottom:10px;font-size:13px}
+    .alert.success{background:#e6fffa;color:#065f46}
+    .alert.error{background:#ffe6e6;color:#7a1f1f}
+    table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}
+    th,td{padding:8px;border-bottom:1px solid #eef2f7;text-align:left}
+    .table-wrap{overflow:auto;max-height:420px}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>La Suerte</h1>
+    <div class="header-right">
+      <div class="user-info">
+        Usuario: <strong id="username">—</strong>
+        <br />
+        Rol: <span class="rol-badge" id="userRole">—</span>
+      </div>
+      <button class="btn-logout" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <nav id="mainNav" style="padding:0 24px;border-bottom:1px solid #e0e6ef;display:flex;gap:8px;background:#fff">
+    <button class="active" data-view="sell">Vender</button>
+    <button data-view="winner">Fijar ganador</button>
+    <button data-view="winners">Ganadores</button>
+    <button data-view="report">Reportes</button>
+  </nav>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card" id="leftPanel">
+        <div id="alerts"></div>
+        <div id="view_sell">
+          <h3>Vender número</h3>
+          <div class="muted">Registra la venta y genera voucher</div>
+          <label>Cliente (nombre)</label>
+          <input id="client_name" />
+          <label>Teléfono</label>
+          <input id="client_phone" />
+          <label>Fecha de nacimiento</label>
+          <input id="client_birth" type="date" />
+          <label>Sorteo</label>
+          <select id="draw_type">
+            <option value="1">La Santa (Q25) - 3/día</option>
+            <option value="2">La Rifa (Q70) - 1/día</option>
+            <option value="3">El Sorteo (Q150) - 2/día</option>
+          </select>
+          <label>Ocurrencia</label>
+          <input id="occurrence" type="number" min="1" value="1" />
+          <label>Número (00-99)</label>
+          <input id="number" maxlength="2" placeholder="07" />
+          <label>Monto (Q)</label>
+          <input id="amount" type="number" value="1" min="1" step="0.01" />
+          <label>Empleado</label>
+          <input id="employee" />
+          <div class="actions">
+            <button class="btn" id="btnSell">Vender</button>
+            <button class="btn secondary" id="btnClear">Limpiar</button>
+          </div>
+          <div id="voucher_card" style="margin-top:14px;display:none" class="card"></div>
+        </div>
+
+        <div id="view_winner" style="display:none">
+          <h3>Fijar ganador (Admin)</h3>
+          <label>Fecha</label>
+          <input id="win_date" type="date" />
+          <label>Sorteo</label>
+          <select id="win_type"><option value="1">La Santa</option><option value="2">La Rifa</option><option value="3">El Sorteo</option></select>
+          <label>Ocurrencia</label>
+          <input id="win_occ" type="number" min="1" value="1" />
+          <label>Número ganador (00-99)</label>
+          <input id="win_number" maxlength="2" />
+          <div class="actions"><button class="btn" id="btnSetWinner">Guardar ganador</button></div>
+          <div id="win_result" style="margin-top:8px;font-size:12px"></div>
+        </div>
+      </div>
+
+      <div class="card" id="rightPanel">
+        <div id="view_winners">
+          <h3>Ganadores</h3>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <input id="q_date" type="date" />
+            <button class="btn" id="btnQueryWinners">Consultar</button>
+          </div>
+          <div class="table-wrap" id="winners_list"></div>
+        </div>
+
+        <div id="view_report" style="display:none">
+          <h3>Reportes</h3>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <input id="r_from" type="date" />
+            <input id="r_to" type="date" />
+            <select id="r_type" style="width:140px"><option value="">Todos</option><option value="1">La Santa</option><option value="2">La Rifa</option><option value="3">El Sorteo</option></select>
+            <button class="btn" id="btnReport">Generar</button>
+          </div>
+          <div id="report_result"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Acceso autenticado — Sistema de Punto de Venta La Suerte</footer>
+  </div>
+
+  <script>
+    // Verificar autenticación al cargar
+    async function checkAuth(){
+      try{
+        const res = await fetch('../backend/api/auth.php');
+        if(!res.ok) return window.location.href = 'login.html';
+        const data = await res.json();
+        if(data.ok){
+          document.getElementById('username').textContent = data.usuario;
+          document.getElementById('userRole').textContent = data.rol;
+          // Si no es admin, deshabilitar "Fijar ganador"
+          if(data.rol !== 'admin'){
+            document.querySelector('nav button[data-view="winner"]').disabled = true;
+            document.querySelector('nav button[data-view="winner"]').title = 'Solo administrador';
+          }
+          initApp();
+        }
+      }catch(e){
+        window.location.href = 'login.html';
+      }
+    }
+
+    function initApp(){
+      // Navegación simple
+      const nav = document.getElementById('mainNav');
+      const views = {sell:'view_sell', winner:'view_winner', winners:'view_winners', report:'view_report'};
+      nav.addEventListener('click', e=>{ if(e.target?.dataset?.view && !e.target.disabled) setView(e.target.dataset.view); });
+      function setView(v){
+        [...nav.querySelectorAll('button')].forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+        for(const k of Object.keys(views)){
+          document.getElementById(views[k]).style.display = (k===v? 'block':'none');
+        }
+        document.getElementById('voucher_card').style.display = v==='sell' ? 'block':'none';
+      }
+
+      // Alert helper
+      function showAlert(type,msg,timeout=4000){
+        const a=document.createElement('div');a.className='alert '+(type==='ok'?'success':'error');a.textContent=msg;
+        const container=document.getElementById('alerts');container.prepend(a);
+        setTimeout(()=>a.remove(),timeout);
+      }
+
+      // Fetch helper
+      async function postJson(url,payload){
+        const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        return res.json();
+      }
+
+      // Vender
+      document.getElementById('btnSell').addEventListener('click', sellTicket);
+      document.getElementById('btnClear').addEventListener('click', ()=>{['client_name','client_phone','client_birth','number','amount','employee'].forEach(id=>document.getElementById(id).value='');});
+      async function sellTicket(){
+        const payload={
+          client_name:document.getElementById('client_name').value.trim(),
+          client_phone:document.getElementById('client_phone').value.trim(),
+          client_birth:document.getElementById('client_birth').value||null,
+          draw_type:parseInt(document.getElementById('draw_type').value||0),
+          occurrence:parseInt(document.getElementById('occurrence').value||1),
+          number:(document.getElementById('number').value||'0').padStart(2,'0'),
+          amount:parseFloat(document.getElementById('amount').value||0),
+          employee:document.getElementById('employee').value.trim(),
+          draw_date:new Date().toISOString().slice(0,10)
+        };
+        if(!payload.client_name || !payload.client_phone || !payload.number || !payload.amount || !payload.draw_type) { showAlert('error','Faltan datos requeridos'); return }
+        try{
+          const data = await postJson('../backend/api/venta.php',payload);
+          if(data.error) { showAlert('error',data.error); return }
+          showAlert('ok','✓ Venta registrada');
+          const v=data.voucher||{};
+          document.getElementById('voucher_card').innerHTML = `<strong>Voucher #${v.sale_id}</strong><div style="margin-top:8px;font-size:12px"><div>${v.client_name} | ${v.client_phone}</div><div>${v.draw_name} - ${v.draw_date} (Ocurr. ${v.occurrence})</div><div>Nº: ${v.number} | Q${v.amount}</div><div>Reclamar: ${v.claim_deadline}</div></div>`;
+        }catch(e){ showAlert('error','Error al conectar'); }
+      }
+
+      // Fijar ganador (solo admin)
+      document.getElementById('btnSetWinner').addEventListener('click', async ()=>{
+        const payload={draw_date:document.getElementById('win_date').value,draw_type:parseInt(document.getElementById('win_type').value),occurrence:parseInt(document.getElementById('win_occ').value),winning_number:(document.getElementById('win_number').value||'').padStart(2,'0')};
+        if(!payload.draw_date||!payload.winning_number) return showAlert('error','Fecha y número requeridos');
+        const data = await postJson('../backend/api/fijar_ganador.php',payload);
+        if(data.error) showAlert('error',data.error); else { showAlert('ok','✓ Ganador fijado'); }
+      });
+
+      // Ganadores
+      document.getElementById('btnQueryWinners').addEventListener('click', getWinners);
+      async function getWinners(){
+        const date = document.getElementById('q_date').value || new Date().toISOString().slice(0,10);
+        try{
+          const res = await fetch('../backend/api/ganadores.php?date='+encodeURIComponent(date));
+          const data = await res.json();
+          if(data.error) return showAlert('error',data.error);
+          renderWinnersTable(data.draws || []);
+        }catch(e){ showAlert('error','Error al obtener'); }
+      }
+
+      function renderWinnersTable(draws){
+        if(!draws.length){ document.getElementById('winners_list').innerHTML='<div style="color:#666;font-size:12px">No hay datos</div>'; return }
+        let html='';
+        draws.forEach(d=>{
+          html += `<div style="margin-bottom:12px"><strong>${d.draw_name} — Ocu. ${d.occurrence} — Ganador: ${d.winning_number||'--'}</strong>`;
+          if(!d.winners || d.winners.length===0) html += '<div style="color:#999;font-size:12px">Sin ganadores</div>'; else {
+            html += `<table><thead><tr><th>Cliente</th><th>Tel</th><th>Monto</th><th>Premio</th></tr></thead><tbody>`;
+            d.winners.forEach(w=> html += `<tr><td>${w.client_name}</td><td>${w.client_phone}</td><td>Q${w.amount}</td><td>Q${w.prize}</td></tr>`);
+            html += '</tbody></table>';
+          }
+          html += '</div>';
+        });
+        document.getElementById('winners_list').innerHTML = html;
+      }
+
+      // Reportes
+      document.getElementById('btnReport').addEventListener('click', async ()=>{
+        const payload = {from:document.getElementById('r_from').value, to:document.getElementById('r_to').value, draw_type:document.getElementById('r_type').value||null};
+        if(!payload.from||!payload.to) return showAlert('error','Seleccione fechas');
+        try{
+          const data = await postJson('../backend/api/informe.php',payload);
+          if(data.error) return showAlert('error',data.error);
+          renderReport(data);
+        }catch(e){ showAlert('error','Error al generar'); }
+      });
+
+      function renderReport(data){
+        const total = data.total || 0;
+        let h = `<div style="font-weight:bold;margin-bottom:12px">Total: Q${total.toFixed(2)}</div>`;
+        if(data.by_type && data.by_type.length){
+          h += '<table><thead><tr><th>Sorteo</th><th>Recaudado</th></tr></thead><tbody>';
+          data.by_type.forEach(r=> h += `<tr><td>${r.name}</td><td>Q${parseFloat(r.collected).toFixed(2)}</td></tr>`);
+          h += '</tbody></table>';
+        }
+        document.getElementById('report_result').innerHTML = h;
+      }
+
+      // Logout
+      document.getElementById('btnLogout').addEventListener('click', async ()=>{
+        await fetch('../backend/api/salir.php');
+        window.location.href = 'login.html';
+      });
+
+      // Init
+      setView('sell');
+      document.getElementById('q_date').value = new Date().toISOString().slice(0,10);
+      document.getElementById('r_from').value = new Date().toISOString().slice(0,10);
+      document.getElementById('r_to').value = new Date().toISOString().slice(0,10);
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>

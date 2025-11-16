@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>La Suerte — Inicio de sesión</title>
+  <style>
+    :root { --accent: #2b6cb0; --error: #c81e1e; --success: #056b43; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 380px;
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-header h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      color: #222;
+    }
+    .login-header p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: #444;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d6dce9;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.1);
+    }
+    .btn-login {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 12px;
+    }
+    .btn-login:hover {
+      background: #1e4d7b;
+    }
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .alert {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .alert.error {
+      background: #fee;
+      color: var(--error);
+      border: 1px solid #fcc;
+    }
+    .alert.success {
+      background: #efe;
+      color: var(--success);
+      border: 1px solid #cfc;
+    }
+    .demo-info {
+      background: #f0f4f9;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #555;
+    }
+    .demo-info strong { display: block; margin-bottom: 6px; }
+    .demo-info div { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>La Suerte</h1>
+      <p>APUESTAS</p>
+    </div>
+
+    <div id="alerts"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="usuario">Usuario</label>
+        <input id="usuario" type="text" placeholder="ingresar usuario aqui" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <input id="contrasena" type="password" placeholder="tu contraseña aqui" />
+      </div>
+      <button type="submit" class="btn-login" id="btnSubmit">Iniciar sesión</button>
+    </form>
+
+  
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const usuarioInput = document.getElementById('usuario');
+    const contrasenaInput = document.getElementById('contrasena');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const alertsDiv = document.getElementById('alerts');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Iniciando...';
+      alertsDiv.innerHTML = '';
+
+      const usuario = usuarioInput.value.trim();
+      const contrasena = contrasenaInput.value;
+
+      if (!usuario || !contrasena) {
+        showAlert('error', 'Usuario y contraseña son requeridos');
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Iniciar sesión';
+        return;
+      }
+
+      try {
+        const res = await fetch('../backend/api/acceso.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, contrasena })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          showAlert('error', data.error || 'Error al iniciar sesión');
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = 'Iniciar sesión';
+          return;
+        }
+
+        showAlert('success', `¡Bienvenido, ${data.usuario}!`);
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 800);
+      } catch (err) {
+        showAlert('error', 'Error de conexión con el servidor');
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Iniciar sesión';
+      }
+    });
+
+    function showAlert(type, msg) {
+      const alert = document.createElement('div');
+      alert.className = `alert ${type}`;
+      alert.textContent = msg;
+      alertsDiv.innerHTML = '';
+      alertsDiv.appendChild(alert);
+    }
+  </script>
+</body>
+</html>
